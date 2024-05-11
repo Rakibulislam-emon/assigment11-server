@@ -7,9 +7,9 @@ const app = express();
 // middleware
 
 const corsOptions = {
-    origin: ['http://localhost:5174','http://localhost:5173'],
-    credentials: true,
-    optionSuccessStatus: 200
+  origin: ['http://localhost:5174', 'http://localhost:5173'],
+  credentials: true,
+  optionSuccessStatus: 200
 }
 app.use(cors(corsOptions));
 app.use(express.json())
@@ -35,12 +35,19 @@ async function run() {
   try {
 
     // collections
-const foodCollections = client.db('community_food_hub').collection('foodsCollection')
+    const foodCollections = client.db('community_food_hub').collection('foodsCollection')
+// 1
+    app.get('/foods', async (req, res) => {
+      console.log(req.body)
+      const result = await foodCollections.find().toArray()
+      res.json(result)
+    })
 
-    app.get('/foods',async (req, res) => {
-        const result = await foodCollections.find().toArray()
-        res.json(result)
-
+// 2
+ 
+ app.post('/foods', async (req, res) => {
+      const result = await foodCollections.insertOne(req.body)
+      res.json(result)
     })
 
 
@@ -59,13 +66,13 @@ const foodCollections = client.db('community_food_hub').collection('foodsCollect
 
 
 
-   
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-   
+
   }
 }
 run().catch(console.dir);
@@ -88,7 +95,7 @@ run().catch(console.dir);
 
 
 
-app.get('/',(req, res) => {
-    res.send('hello world server is running hello')
+app.get('/', (req, res) => {
+  res.send('hello world server is running hello')
 })
-app.listen(port,()=>console.log(` listening on ${port}`));
+app.listen(port, () => console.log(` listening on ${port}`));
