@@ -19,7 +19,7 @@ app.use(express.json())
 // database
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.zuuvjs1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -39,7 +39,7 @@ async function run() {
 // 1
     app.get('/foods', async (req, res) => {
       console.log(req.body)
-      const result = await foodCollections.find().toArray()
+      const result = await foodCollections.find({ status: 'available'}).toArray()
       res.json(result)
     })
 
@@ -50,9 +50,48 @@ async function run() {
       res.json(result)
     })
 
+//  3
+app.get('/api/foods/search', async (req, res) => {
+  try {
+    const { foodName } = req.query; // Corrected the query parameter name
+    const result = await foodCollections.find({ foodName: { $regex: foodName, $options: 'i' } }).toArray(); // Converted the result to an array
+    res.json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' }); // Sending a generic error response
+  }
+});
 
+// 4
 
+app.get('/api/sortedFoods', async (req, res) => {
+  const sortOrder = req.query.order || 'asc'; // Default to ascending order if order is not provided
+  try {
+    let foods;
+    if (sortOrder === 'asc') {
+      foods = await foodCollections.find().sort({ expiredDateTime: 1 }).toArray(); // Ascending order
+    } else {
+      foods = await foodCollections.find().sort({ expiredDateTime: -1 }).toArray(); // Descending order
+    }
+    res.json(foods);
+  } catch (error) {
+    console.error('Error fetching sorted foods:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
+// 5
+
+app.get('/api/foods/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const result = await foodCollections.findOne({ _id: new ObjectId(id) });
+    res.json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
