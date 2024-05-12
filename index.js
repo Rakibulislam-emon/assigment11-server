@@ -36,6 +36,8 @@ async function run() {
 
     // collections
     const foodCollections = client.db('community_food_hub').collection('foodsCollection')
+
+    const foodRequests = client.db('community_food_hub').collection('foodRequests')
 // 1
     app.get('/foods', async (req, res) => {
       console.log(req.body)
@@ -93,10 +95,49 @@ app.get('/api/foods/:id', async (req, res) => {
   }
 });
 
+// 6
 
+app.get('/posted-food/:email', async (req, res) => {
+  try {
+    const email = req.params.email;
+    const result = await foodCollections.find({ "donator.email": email }).toArray();
+    res.json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+})
 
+// 7
+app.put('/foods/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { userEmail, requestedDate, status, notes ,additionalNotes } = req.body; // Destructure the fields from req.body
 
+    // Here, you can update the document in your collection using the received data
+    const result = await foodCollections.updateOne({ _id: new ObjectId(id) }, { $set: { userEmail, requestedDate, status, additionalNotes } });
+    
+    res.json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
+// 8 get
+
+app.get('/foodRequests', async (req, res) => {
+  try {
+      const userEmail = req.query.userEmail; // Get the userEmail query parameter from the request
+console.log(userEmail)
+      // Fetch food requests from the collection based on the userEmail
+      const result = await foodCollections.find({ userEmail: userEmail }).toArray();
+      res.json(result);
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
