@@ -38,109 +38,179 @@ async function run() {
     const foodCollections = client.db('community_food_hub').collection('foodsCollection')
 
     const foodRequests = client.db('community_food_hub').collection('foodRequests')
-// 1
+    // 1
     app.get('/foods', async (req, res) => {
       console.log(req.body)
-      const result = await foodCollections.find({ status: 'available'}).toArray()
+      const result = await foodCollections.find({ status: 'available' }).toArray()
       res.json(result)
     })
 
-// 2
- 
- app.post('/foods', async (req, res) => {
+    // 2
+
+    app.post('/foods', async (req, res) => {
       const result = await foodCollections.insertOne(req.body)
       res.json(result)
     })
 
-//  3
-app.get('/api/foods/search', async (req, res) => {
-  try {
-    const { foodName } = req.query; // Corrected the query parameter name
-    const result = await foodCollections.find({ foodName: { $regex: foodName, $options: 'i' } }).toArray(); // Converted the result to an array
-    res.json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Internal Server Error' }); // Sending a generic error response
-  }
-});
+    //  3
+    app.get('/api/foods/search', async (req, res) => {
+      try {
+        const { foodName } = req.query; // Corrected the query parameter name
+        const result = await foodCollections.find({ foodName: { $regex: foodName, $options: 'i' } }).toArray(); // Converted the result to an array
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' }); // Sending a generic error response
+      }
+    });
 
-// 4
+    // 4
 
-app.get('/api/sortedFoods', async (req, res) => {
-  const sortOrder = req.query.order || 'asc'; // Default to ascending order if order is not provided
-  try {
-    let foods;
-    if (sortOrder === 'asc') {
-      foods = await foodCollections.find().sort({ expiredDateTime: 1 }).toArray(); // Ascending order
-    } else {
-      foods = await foodCollections.find().sort({ expiredDateTime: -1 }).toArray(); // Descending order
-    }
-    res.json(foods);
-  } catch (error) {
-    console.error('Error fetching sorted foods:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+    app.get('/api/sortedFoods', async (req, res) => {
+      const sortOrder = req.query.order || 'asc'; // Default to ascending order if order is not provided
+      try {
+        let foods;
+        if (sortOrder === 'asc') {
+          foods = await foodCollections.find().sort({ expiredDateTime: 1 }).toArray(); // Ascending order
+        } else {
+          foods = await foodCollections.find().sort({ expiredDateTime: -1 }).toArray(); // Descending order
+        }
+        res.json(foods);
+      } catch (error) {
+        console.error('Error fetching sorted foods:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
-// 5
+    // 5
 
-app.get('/api/foods/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
-    const result = await foodCollections.findOne({ _id: new ObjectId(id) });
-    res.json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+    app.get('/api/foods/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        const result = await foodCollections.findOne({ _id: new ObjectId(id) });
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
-// 6
+    // 6
 
-app.get('/posted-food/:email', async (req, res) => {
-  try {
-    const email = req.params.email;
-    const result = await foodCollections.find({ "donator.email": email }).toArray();
-    res.json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-})
+    app.get('/posted-food/:email', async (req, res) => {
+      try {
+        const email = req.params.email;
+        const result = await foodCollections.find({ "donator.email": email }).toArray();
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    })
 
-// 7
-app.put('/foods/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
-    const { userEmail, requestedDate, status, notes ,additionalNotes } = req.body; // Destructure the fields from req.body
+    // 7 put
+    app.put('/foods/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        const { userEmail, requestedDate, status, additionalNotes } = req.body; // Destructure the fields from req.body
 
-    // Here, you can update the document in your collection using the received data
-    const result = await foodCollections.updateOne({ _id: new ObjectId(id) }, { $set: { userEmail, requestedDate, status, additionalNotes } });
-    
-    res.json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+        // Here, you can update the document in your collection using the received data
+        const result = await foodCollections.updateOne({ _id: new ObjectId(id) }, { $set: { userEmail, requestedDate, status, additionalNotes } });
 
-// 8 get
-
-app.get('/foodRequests', async (req, res) => {
-  try {
-      const userEmail = req.query.userEmail; // Get the userEmail query parameter from the request
-console.log(userEmail)
-      // Fetch food requests from the collection based on the userEmail
-      const result = await foodCollections.find({ userEmail: userEmail }).toArray();
-      res.json(result);
-  } catch (error) {
-      console.log(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
 
 
+
+
+
+
+
+
+
+
+
+// done 
+
+    // update foods
+    app.put('/update-foods/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        const { foodName, status, additionalNotes, foodUrl, expiredDateTime, pickupLocation,foodQuantity } = req.body; // Destructure the fields from req.body
+
+        // Here, you can update the document in your collection using the received data
+        const result = await foodCollections.updateOne({ _id: new ObjectId(id) }, { $set: { foodName, status, additionalNotes, foodUrl, expiredDateTime, pickupLocation,foodQuantity } });
+
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+
+// delete food
+    app.delete('/delete-foods/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        console.log(id)
+        const result = await foodCollections.deleteOne({ _id: new ObjectId(id) });
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 8 get
+
+
+    app.get('/foodRequests', async (req, res) => {
+      try {
+        const userEmail = req.query.userEmail; // Get the userEmail query parameter from the request
+        console.log(userEmail)
+        // Fetch food requests from the collection based on the userEmail
+        const result = await foodCollections.find({ userEmail: userEmail }).toArray();
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+
+    // 10 get
+
+    app.get('/update-food/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        console.log(id)
+        const result = await foodCollections.findOne({ _id: new ObjectId(id) });
+        res.json(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
 
 
