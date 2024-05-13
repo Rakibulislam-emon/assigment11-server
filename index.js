@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config()
+require('dotenv').config();
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 const port = process.env.PORT || 5000;
 
 const app = express();
@@ -13,7 +15,7 @@ const corsOptions = {
 }
 app.use(cors(corsOptions));
 app.use(express.json())
-
+app.use(cookieParser())
 
 
 // database
@@ -123,18 +125,6 @@ async function run() {
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
-
-
-
-
-
-
-
-
-
-
-
-
 // done 
 
     // update foods
@@ -168,9 +158,34 @@ async function run() {
     });
 
 
+//  jwt authorization
+    app.post('/jwt', async (req, res) => {
+      const user = req.body
+      const token = jwt.sign(user,process.env.DB_TOKEN_SECRET,{
+        expiresIn: '356d',
+        
+      })
+      res.cookie('token', token,{
+        httpOnly: true,
+        secure:process.env.NODE_ENV === 'production',
+        sameSite:process.env.NODE_ENV === 'production'? 'none' : 'strict'
 
+      }).send({success : true})
+    })
 
+// clear cookies
+    app.get('/logout', (req, res) => {
+     res
+     .clearCookie('token',{
+       httpOnly: true,
+       secure:process.env.NODE_ENV === 'production',
+       sameSite:process.env.NODE_ENV === 'production'? 'none' :'strict',
+       maxAge: 0,
+     }) 
+     .send({ success : true})
+    })
 
+    // 9 post
 
 
 
