@@ -17,6 +17,23 @@ app.use(cors(corsOptions));
 app.use(express.json())
 app.use(cookieParser())
 
+// verify jwt 
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token
+  if (!token) return res.status(401).send({ message: 'unauthorized access' })
+  if (token) {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        console.log(err)
+        return res.status(401).send({ message: 'unauthorized access' })
+      }
+      console.log(decoded)
+
+      req.user = decoded
+      next()
+    })
+  }
+}
 
 // database
 
@@ -101,9 +118,13 @@ async function run() {
 
     app.get('/posted-food/:email', async (req, res) => {
       try {
+        
         const email = req.params.email;
         const result = await foodCollections.find({ "donator.email": email }).toArray();
         res.json(result);
+        const token = req.cookies.token
+        console.log("🚀 ~ app.get ~ token:", token)
+        
       } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -158,21 +179,23 @@ async function run() {
     });
 
 
-//  jwt authorization
     app.post('/jwt', async (req, res) => {
-      const user = req.body
-      const token = jwt.sign(user,process.env.DB_TOKEN_SECRET,{
-        expiresIn: '356d',
-        
-      })
-      res.cookie('token', token,{
-        httpOnly: true,
-        secure:process.env.NODE_ENV === 'production',
-        sameSite:process.env.NODE_ENV === 'production'? 'none' : 'strict'
-
-      }).send({success : true})
-    })
-
+      try {
+        const user = req.body;
+        const token = jwt.sign(user, process.env.DB_TOKEN_SECRET, {
+          expiresIn: '356d'
+        });
+        res.cookie('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+        }).send({ success: true });
+      } catch (error) {
+        console.error('Error generating JWT:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+      }
+    });
+    
 // clear cookies
     app.get('/logout', (req, res) => {
      res
@@ -201,6 +224,8 @@ async function run() {
 
     app.get('/foodRequests', async (req, res) => {
       try {
+       
+
         const userEmail = req.query.userEmail; // Get the userEmail query parameter from the request
         console.log(userEmail)
         // Fetch food requests from the collection based on the userEmail
