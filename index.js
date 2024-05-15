@@ -59,6 +59,7 @@ async function run() {
     const foodRequests = client.db('community_food_hub').collection('foodRequests')
     // 1
     app.get('/foods', async (req, res) => {
+     
       console.log(req.body)
       const result = await foodCollections.find({ status: 'available' }).toArray()
       res.json(result)
@@ -67,6 +68,7 @@ async function run() {
     // 2
 
     app.post('/foods', async (req, res) => {
+   
       const result = await foodCollections.insertOne(req.body)
       res.json(result)
     })
@@ -121,9 +123,8 @@ async function run() {
         
         const email = req.params.email;
         const result = await foodCollections.find({ "donator.email": email }).toArray();
+       
         res.json(result);
-        const token = req.cookies.token
-        console.log("🚀 ~ app.get ~ token:", token)
         
       } catch (error) {
         console.log(error);
@@ -179,9 +180,12 @@ async function run() {
     });
 
 
+    // jwt authorization  this is main file....
+
     app.post('/jwt', async (req, res) => {
       try {
         const user = req.body;
+        console.log(user,'188line')
         const token = jwt.sign(user, process.env.DB_TOKEN_SECRET, {
           expiresIn: '356d'
         });
